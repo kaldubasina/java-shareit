@@ -1,6 +1,5 @@
 package ru.practicum.shareit.user.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.AlreadyExistException;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -16,7 +15,6 @@ public class UserServiceImpl implements UserService {
     private final ItemInMemoryStorage itemStorage;
     private final UserInMemoryStorage userStorage;
 
-    @Autowired
     public UserServiceImpl(ItemInMemoryStorage itemStorage, UserInMemoryStorage userStorage) {
         this.itemStorage = itemStorage;
         this.userStorage = userStorage;
@@ -34,18 +32,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User update(User user, int userId) {
-        User forUpdate = userStorage.getById(userId).orElseThrow(() ->
+        User userForUpdate = userStorage.getById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
-        if (user.getEmail() != null && !user.getEmail().equals(forUpdate.getEmail())) {
+        if (user.getEmail() != null && !user.getEmail().equals(userForUpdate.getEmail())) {
             if (isEmailUsed(user.getEmail())) {
                 throw new AlreadyExistException(String.format("Почтовый адрес %s уже используется", user.getEmail()));
             }
-            forUpdate.setEmail(user.getEmail());
+            userForUpdate.setEmail(user.getEmail());
         }
         if (user.getName() != null && !user.getName().isBlank()) {
-            forUpdate.setName(user.getName());
+            userForUpdate.setName(user.getName());
         }
-        return forUpdate;
+        return userForUpdate;
     }
 
     @Override

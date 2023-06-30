@@ -1,6 +1,5 @@
 package ru.practicum.shareit.item.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dao.ItemInMemoryStorage;
@@ -17,7 +16,6 @@ public class ItemServiceImpl implements ItemService {
     private final ItemInMemoryStorage itemStorage;
     private final UserInMemoryStorage userStorage;
 
-    @Autowired
     public ItemServiceImpl(ItemInMemoryStorage itemStorage, UserInMemoryStorage userStorage) {
         this.itemStorage = itemStorage;
         this.userStorage = userStorage;
@@ -32,21 +30,21 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Item update(Item item, int itemId, int userId) {
-        Item forUpdate = itemStorage.getById(itemId).orElseThrow(() ->
+        Item itemForUpdate = itemStorage.getById(itemId).orElseThrow(() ->
                 new NotFoundException(String.format("Вещь с id %d не найдена", item.getId())));
-        if (forUpdate.getOwner().getId() != userId) {
+        if (itemForUpdate.getOwner().getId() != userId) {
             throw new NotFoundException(String.format("Вы не владеете вещью с id %d", item.getId()));
         }
         if (item.getName() != null && !item.getName().isBlank()) {
-            forUpdate.setName(item.getName());
+            itemForUpdate.setName(item.getName());
         }
         if (item.getDescription() != null && !item.getDescription().isBlank()) {
-            forUpdate.setDescription(item.getDescription());
+            itemForUpdate.setDescription(item.getDescription());
         }
-        if (item.getAvailable() != null && forUpdate.getAvailable() != item.getAvailable()) {
-            forUpdate.setAvailable(item.getAvailable());
+        if (item.getAvailable() != null && itemForUpdate.getAvailable() != item.getAvailable()) {
+            itemForUpdate.setAvailable(item.getAvailable());
         }
-        return forUpdate;
+        return itemForUpdate;
     }
 
     @Override
