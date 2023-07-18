@@ -9,8 +9,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.shareit.exception.model.ErrorResponse;
 
-import java.util.HashMap;
-import java.util.Map;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
@@ -46,6 +48,24 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleThrowable(final Throwable ex) {
         log.debug("Внутренняя ошибка сервера 500 Internal Server Error {}", ex.getMessage(), ex);
+        return new ErrorResponse(ex.getMessage());
+    }
+
+    @ExceptionHandler(NotAvailableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleNotAvailableException(final RuntimeException ex) {
+        log.debug("Отказано в доступе 400 {}", ex.getMessage(), ex);
+        return new ErrorResponse(ex.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(ConstraintViolationException.class)
+    protected ErrorResponse handleConstraintViolation(ConstraintViolationException ex) {
+        List<String> errors = ex.getConstraintViolations()
+                .stream()
+                .map(ConstraintViolation::getMessage)
+                .collect(Collectors.toList());
+        log.debug("Получен статус 400 {}", ex.getMessage(), ex);
         return new ErrorResponse(ex.getMessage());
     }
 }

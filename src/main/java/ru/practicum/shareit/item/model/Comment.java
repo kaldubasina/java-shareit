@@ -1,4 +1,4 @@
-package ru.practicum.shareit.booking.model;
+package ru.practicum.shareit.item.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
@@ -17,23 +16,21 @@ import java.time.LocalDateTime;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "bookings")
-public class Booking {
+@Table(name = "comments")
+public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @Column(name = "start_date", nullable = false)
-    private LocalDateTime start;
-    @Column(name = "end_date", nullable = false)
-    private LocalDateTime end;
+    @Column(name = "text", nullable = false)
+    private String text;
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "booker_id", nullable = false)
-    private User booker;
-    @Enumerated(EnumType.STRING)
-    private Status status;
+    @JoinColumn(name = "author_id", nullable = false)
+    private User author;
+    @Column(name = "created", nullable = false)
+    private LocalDateTime created;
 }
