@@ -66,6 +66,6 @@ public class ErrorHandler {
                 .map(ConstraintViolation::getMessage)
                 .collect(Collectors.toList());
         log.debug("Получен статус 400 {}", ex.getMessage(), ex);
-        return new ErrorResponse(ex.getMessage());
+        return new ErrorResponse(String.join(", ", errors));
     }
 }
