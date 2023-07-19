@@ -2,7 +2,7 @@ package ru.practicum.shareit.item.dto;
 
 import lombok.Builder;
 import lombok.Data;
-import ru.practicum.shareit.booking.dto.BookingForItemDto;
+import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.validators.EntityValidator.*;
 
 import javax.validation.constraints.NotBlank;
@@ -19,7 +19,7 @@ public class ItemDto {
     private String description;
     @NotNull(groups = OnCreate.class)
     private Boolean available;
-    private BookingForItemDto lastBooking;
-    private BookingForItemDto nextBooking;
+    private BookingDto lastBooking;
+    private BookingDto nextBooking;
     private List<CommentDto> comments;
 }

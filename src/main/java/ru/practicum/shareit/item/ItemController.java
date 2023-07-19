@@ -28,7 +28,7 @@ public class ItemController {
     @PostMapping
     public ItemDto addNew(@Validated(EntityValidator.OnCreate.class) @RequestBody ItemDto itemDto,
                           @RequestHeader(REQUEST_HEADER_USER_ID) long userId) {
-        Item item = itemService.addNew(ItemMapper.dtoToItem(itemDto), userId);
+        Item item = itemService.add(ItemMapper.dtoToItem(itemDto), userId);
         return ItemMapper.toItemDto(item);
     }
 
@@ -48,7 +48,7 @@ public class ItemController {
 
     @GetMapping
     public Collection<ItemDto> getByUser(@RequestHeader(REQUEST_HEADER_USER_ID) long userId) {
-        return itemService.getByUser(userId)
+        return itemService.getByUserId(userId)
                 .stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());

@@ -11,7 +11,6 @@ import ru.practicum.shareit.user.model.User;
 import java.util.List;
 
 @Service
-@Transactional
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -21,7 +20,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User addNew(User user) {
+    public User add(User user) {
         try {
             return userRepository.save(user);
         } catch (DataIntegrityViolationException e) {

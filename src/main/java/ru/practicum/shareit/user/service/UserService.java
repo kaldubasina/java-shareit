@@ -5,7 +5,7 @@ import ru.practicum.shareit.user.model.User;
 import java.util.List;
 
 public interface UserService {
-    User addNew(User user);
+    User add(User user);
 
     User update(User user, long userId);
 

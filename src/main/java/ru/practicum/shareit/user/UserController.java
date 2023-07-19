@@ -20,7 +20,7 @@ public class UserController {
 
     @PostMapping
     public UserDto addNew(@Validated(EntityValidator.OnCreate.class) @RequestBody UserDto userDto) {
-        return UserMapper.toUserDto(userService.addNew(UserMapper.dtoToUser(userDto)));
+        return UserMapper.toUserDto(userService.add(UserMapper.dtoToUser(userDto)));
     }
 
     @PatchMapping("/{userId}")

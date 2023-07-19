@@ -20,7 +20,6 @@ import java.util.List;
 import static ru.practicum.shareit.util.Constants.SORT_BY_START_DATE_DESC;
 
 @Service
-@Transactional
 public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
@@ -36,7 +35,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Booking addNew(Booking booking, long itemId, long userId) {
+    public Booking add(Booking booking, long itemId, long userId) {
         User booker = userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
         Item item = itemRepository.findById(itemId).orElseThrow(() ->
@@ -59,7 +58,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional(readOnly = true)
-    public Booking getBookingById(long bookingId, long userId) {
+    public Booking getByBookingIdAndUserId(long bookingId, long userId) {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(() ->
@@ -79,20 +78,16 @@ public class BookingServiceImpl implements BookingService {
         if (!booking.getItem().getOwner().equals(user)) {
             throw new NotFoundException("Вы не являетесь владельцем вещи");
         }
-        if (isApproved) {
-            if (booking.getStatus().equals(Status.APPROVED)) {
-                throw new NotAvailableException("Бронирование уже подтверждено");
-            }
-            booking.setStatus(Status.APPROVED);
-        } else {
-            booking.setStatus(Status.REJECTED);
+        if (isApproved && booking.getStatus().equals(Status.APPROVED)) {
+            throw new NotAvailableException("Бронирование уже подтверждено");
         }
+        booking.setStatus(isApproved ? Status.APPROVED : Status.REJECTED);
         return bookingRepository.save(booking);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<Booking> getUserBookings(State state, long bookerId) {
+    public List<Booking> getByStateAndUserId(State state, long bookerId) {
         userRepository.findById(bookerId).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id %d не найден", bookerId)));
         LocalDateTime current = LocalDateTime.now();
@@ -134,7 +129,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Booking> getUserItemsBooking(State state, long ownerId) {
+    public List<Booking> getAllByStateAndUserId(State state, long ownerId) {
         userRepository.findById(ownerId).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id %d не найден", ownerId)));
         LocalDateTime current = LocalDateTime.now();

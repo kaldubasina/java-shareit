@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 import static ru.practicum.shareit.util.Constants.*;
 
 @Service
-@Transactional
 public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
@@ -40,7 +39,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Item addNew(Item item, long userId) {
+    public Item add(Item item, long userId) {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
         item.setOwner(user);
@@ -92,7 +91,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Item> getByUser(long userId) {
+    public List<Item> getByUserId(long userId) {
         List<Item> items = itemRepository.findByOwnerId(userId);
         List<Comment> comments = commentRepository.findByItemIdIn(items.stream()
                 .map(Item::getId)
