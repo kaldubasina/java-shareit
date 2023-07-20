@@ -1,9 +1,8 @@
-package ru.practicum.shareit.booking.model;
+package ru.practicum.shareit.item.model;
 
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
@@ -14,22 +13,20 @@ import java.time.LocalDateTime;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(exclude = {"start", "end", "item", "booker", "status"})
-@Table(name = "bookings", schema = "public")
-public class Booking {
+@EqualsAndHashCode(exclude = {"text", "item", "author", "created"})
+@Table(name = "comments", schema = "public")
+public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @Column(name = "start_date", nullable = false)
-    private LocalDateTime start;
-    @Column(name = "end_date", nullable = false)
-    private LocalDateTime end;
+    @Column(name = "text", nullable = false)
+    private String text;
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Item item;
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private User booker;
-    @Enumerated(EnumType.STRING)
-    private Status status;
+    private User author;
+    @Column(name = "created", nullable = false)
+    private LocalDateTime created;
 }
