@@ -10,9 +10,9 @@ public interface BookingService {
 
     Booking bookingDecision(long bookingId, long userId, boolean isApproved);
 
-    List<Booking> getByStateAndUserId(State state, long userId);
+    List<Booking> getByStateAndUserId(State state, long userId, int from, int size);
 
-    List<Booking> getAllByStateAndUserId(State state, long userId);
+    List<Booking> getAllByStateAndUserId(State state, long userId, int from, int size);
 
     Booking getByBookingIdAndUserId(long bookingId, long userId);
 }

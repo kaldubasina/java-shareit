@@ -2,8 +2,9 @@ package ru.practicum.shareit.item.dto;
 
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.lang.Nullable;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.validators.EntityValidator.*;
+import ru.practicum.shareit.validators.EntityValidator.OnCreate;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -19,6 +20,8 @@ public class ItemDto {
     private String description;
     @NotNull(groups = OnCreate.class)
     private Boolean available;
+    @Nullable
+    private Long requestId;
     private BookingDto lastBooking;
     private BookingDto nextBooking;
     private List<CommentDto> comments;

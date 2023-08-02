@@ -26,10 +26,13 @@ public class ItemMapper {
                     .collect(Collectors.toList()));
         }
         if (item.getLastBooking() != null) {
-            itemDto.setLastBooking(BookingMapper.toBookingForItemDto(item.getLastBooking()));
+            itemDto.setLastBooking(BookingMapper.toBookingDto(item.getLastBooking()));
         }
         if (item.getNextBooking() != null) {
-            itemDto.setNextBooking(BookingMapper.toBookingForItemDto(item.getNextBooking()));
+            itemDto.setNextBooking(BookingMapper.toBookingDto(item.getNextBooking()));
+        }
+        if (item.getItemRequestId() != null) {
+            itemDto.setRequestId(item.getItemRequestId());
         }
         return itemDto;
     }

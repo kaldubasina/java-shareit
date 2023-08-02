@@ -12,6 +12,8 @@ import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.validators.AvailableEnumValue;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -26,13 +28,13 @@ public class BookingController {
     private final BookingService bookingService;
 
     @PostMapping
-    public ResponseBookingDto addNew(@Valid @RequestBody RequestBookingDto bookingDto,
-                                     @RequestHeader(REQUEST_HEADER_USER_ID) long userId) {
+    public ResponseBookingDto add(@Valid @RequestBody RequestBookingDto bookingDto,
+                                  @RequestHeader(REQUEST_HEADER_USER_ID) long userId) {
         Booking booking = bookingService.add(
-                BookingMapper.createDtoToBooking(bookingDto),
+                BookingMapper.requestBookingDtoToBooking(bookingDto),
                 bookingDto.getItemId(),
                 userId);
-        return BookingMapper.toGetBookingDto(booking);
+        return BookingMapper.toResponseBookingDto(booking);
     }
 
     @PatchMapping("/{bookingId}")
@@ -40,35 +42,39 @@ public class BookingController {
                                               @RequestHeader(REQUEST_HEADER_USER_ID) long userId,
                                               @RequestParam("approved") boolean isApproved) {
         Booking booking = bookingService.bookingDecision(bookingId, userId, isApproved);
-        return BookingMapper.toGetBookingDto(booking);
+        return BookingMapper.toResponseBookingDto(booking);
     }
 
     @GetMapping("/{bookingId}")
     public ResponseBookingDto getBookingById(@PathVariable long bookingId,
                                              @RequestHeader(REQUEST_HEADER_USER_ID) long userId) {
         Booking booking = bookingService.getByBookingIdAndUserId(bookingId, userId);
-        return BookingMapper.toGetBookingDto(booking);
+        return BookingMapper.toResponseBookingDto(booking);
     }
 
     @GetMapping
-    public Collection<ResponseBookingDto> getUserBookings(
+    public Collection<ResponseBookingDto> getByStateAndUserId(
             @RequestParam(value = "state", defaultValue = "ALL")
             @AvailableEnumValue(enumClass = State.class) String state,
+            @RequestParam(value = "from", defaultValue = "0") @PositiveOrZero int from,
+            @RequestParam(value = "size", defaultValue = "5") @Positive int size,
             @RequestHeader(REQUEST_HEADER_USER_ID) long userId) {
-        return bookingService.getByStateAndUserId(State.valueOf(state), userId)
+        return bookingService.getByStateAndUserId(State.valueOf(state), userId, from, size)
                 .stream()
-                .map(BookingMapper::toGetBookingDto)
+                .map(BookingMapper::toResponseBookingDto)
                 .collect(Collectors.toList());
     }
 
     @GetMapping("/owner")
-    public Collection<ResponseBookingDto> getUserItemsBooking(
+    public Collection<ResponseBookingDto> getAllByStateAndUserId(
             @RequestParam(value = "state", defaultValue = "ALL")
             @AvailableEnumValue(enumClass = State.class) String state,
+            @RequestParam(value = "from", defaultValue = "0") @PositiveOrZero int from,
+            @RequestParam(value = "size", defaultValue = "5") @Positive int size,
             @RequestHeader(REQUEST_HEADER_USER_ID) long userId) {
-        return bookingService.getAllByStateAndUserId(State.valueOf(state), userId)
+        return bookingService.getAllByStateAndUserId(State.valueOf(state), userId, from, size)
                 .stream()
-                .map(BookingMapper::toGetBookingDto)
+                .map(BookingMapper::toResponseBookingDto)
                 .collect(Collectors.toList());
     }
 }

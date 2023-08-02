@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.model;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.springframework.lang.Nullable;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.user.model.User;
 
@@ -14,7 +15,14 @@ import java.util.List;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(exclude = {"name", "description", "available", "owner", "lastBooking", "nextBooking", "comments"})
+@EqualsAndHashCode(exclude = {"name",
+        "description",
+        "available",
+        "owner",
+        "lastBooking",
+        "nextBooking",
+        "comments",
+        "itemRequestId"})
 @Table(name = "items", schema = "public")
 public class Item {
     @Id
@@ -29,6 +37,9 @@ public class Item {
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User owner;
+    @Nullable
+    @Column(name = "request_id")
+    private Long itemRequestId;
     @Transient
     private Booking lastBooking;
     @Transient
