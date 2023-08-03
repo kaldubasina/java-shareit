@@ -19,7 +19,7 @@ public class ItemRequestMapper {
                 .created(itemRequest.getCreated())
                 .items(Collections.emptyList())
                 .build();
-        if (itemRequest.getItemsOnRequest() != null) {
+        if (itemRequest.getItemsOnRequest() != null && !itemRequest.getItemsOnRequest().isEmpty()) {
             itemRequestDto.setItems(itemRequest.getItemsOnRequest().stream()
                     .map(ItemMapper::toItemDto)
                     .collect(Collectors.toList()));
