@@ -37,6 +37,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public Booking add(Booking booking, long itemId, long userId) {
         User booker = userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
@@ -59,7 +60,6 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Booking getByBookingIdAndUserId(long bookingId, long userId) {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
@@ -72,6 +72,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public Booking bookingDecision(long bookingId, long userId, boolean isApproved) {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
@@ -88,10 +89,10 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<Booking> getByStateAndUserId(State state, long bookerId, int from, int size) {
-        userRepository.findById(bookerId).orElseThrow(() ->
-                new NotFoundException(String.format("Пользователь с id %d не найден", bookerId)));
+        if (!userRepository.existsById(bookerId)) {
+            throw new NotFoundException(String.format("Пользователь с id %d не найден", bookerId));
+        }
         LocalDateTime current = LocalDateTime.now();
         Pageable page = PageRequest.of(from / size, size, SORT_BY_START_DATE_DESC);
         switch (state) {
@@ -131,10 +132,10 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<Booking> getAllByStateAndUserId(State state, long ownerId, int from, int size) {
-        userRepository.findById(ownerId).orElseThrow(() ->
-                new NotFoundException(String.format("Пользователь с id %d не найден", ownerId)));
+        if (!userRepository.existsById(ownerId)) {
+            throw new NotFoundException(String.format("Пользователь с id %d не найден", ownerId));
+        }
         LocalDateTime current = LocalDateTime.now();
         Pageable page = PageRequest.of(from / size, size, SORT_BY_START_DATE_DESC);
         switch (state) {

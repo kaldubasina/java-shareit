@@ -47,19 +47,22 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
     public Item add(Item item, long userId, Long requestId) {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
         item.setOwner(user);
         if (requestId != null) {
-            requestRepository.findById(requestId).orElseThrow(() ->
-                    new NotFoundException(String.format("Запрос с id %d не найден", requestId)));
+            if (!requestRepository.existsById(requestId)) {
+                   throw new NotFoundException(String.format("Запрос с id %d не найден", requestId));
+            }
             item.setItemRequestId(requestId);
         }
         return itemRepository.save(item);
     }
 
     @Override
+    @Transactional
     public Item update(Item item, long itemId, long userId) {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
@@ -81,7 +84,6 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Item getByItemId(long itemId, long userId) {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
@@ -103,7 +105,6 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<Item> getByUserId(long userId, int from, int size) {
         List<Item> items = itemRepository.findByOwnerId(userId, PageRequest.of(from / size, size));
         List<Comment> comments = commentRepository.findByItemIdIn(items.stream()
@@ -138,7 +139,6 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<Item> searchByText(String text, int from, int size) {
         Pageable page = PageRequest.of(from / size, size);
         if (!text.isBlank()) {
@@ -148,6 +148,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
     public Comment addComment(Comment comment, long itemId, long userId) {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id %d не найден", userId)));

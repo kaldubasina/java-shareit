@@ -115,13 +115,13 @@ public class ItemServiceTest {
     void shouldThrowRequestNotFoundException() {
         when(userRepository.findById(anyLong()))
                 .thenReturn(Optional.of(user));
-        when(requestRepository.findById(anyLong()))
-                .thenReturn(Optional.empty());
+        when(requestRepository.existsById(anyLong()))
+                .thenReturn(false);
 
         assertThrows(NotFoundException.class, () ->
                 itemService.add(item, 1L, 1L));
         verify(userRepository, times(1)).findById(anyLong());
-        verify(requestRepository, times(1)).findById(anyLong());
+        verify(requestRepository, times(1)).existsById(anyLong());
     }
 
     @Test
@@ -151,7 +151,7 @@ public class ItemServiceTest {
         assertThat(item, equalTo(itemService.add(item, 1L, null)));
         verify(userRepository, times(1)).findById(anyLong());
         verify(itemRepository, times(1)).save(any());
-        verify(requestRepository, never()).findById(anyLong());
+        verify(requestRepository, never()).existsById(anyLong());
     }
 
     @Test

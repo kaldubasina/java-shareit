@@ -33,6 +33,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     @Override
+    @Transactional
     public ItemRequest add(ItemRequest itemRequest, long userId) {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
@@ -42,10 +43,10 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public ItemRequest getById(long requestId, long userId) {
-        userRepository.findById(userId).orElseThrow(() ->
-                new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException(String.format("Пользователь с id %d не найден", userId));
+        }
         ItemRequest itemRequest = requestRepository.findById(requestId).orElseThrow(() ->
                 new NotFoundException(String.format("Запрос с id %d не найден", requestId)));
         itemRequest.setItemsOnRequest(itemRepository.findByItemRequestId(requestId));
@@ -53,37 +54,35 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<ItemRequest> getByUserId(long userId) {
-        userRepository.findById(userId).orElseThrow(() ->
-                new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
-        List<ItemRequest> requests = requestRepository.findByRequesterId(userId);
-        List<Item> items = itemRepository.findByItemRequestIdIn(requests.stream()
-                .map(ItemRequest::getId)
-                .collect(Collectors.toList()));
-        if (!items.isEmpty()) {
-            requests.forEach(r -> r.setItemsOnRequest(items.stream()
-                    .filter(i -> i.getItemRequestId() == r.getId())
-                    .collect(Collectors.toList())));
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException(String.format("Пользователь с id %d не найден", userId));
         }
+        List<ItemRequest> requests = requestRepository.findByRequesterId(userId);
+        setItemsOnRequest(requests);
         return requests;
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<ItemRequest> getAll(long userId, int from, int size) {
-        userRepository.findById(userId).orElseThrow(() ->
-                new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException(String.format("Пользователь с id %d не найден", userId));
+        }
         Pageable sortByCreated = PageRequest.of(from / size, size, Sort.by("created").descending());
         List<ItemRequest> requests = requestRepository.findByRequesterIdNot(userId, sortByCreated);
+        setItemsOnRequest(requests);
+        return requests;
+    }
+
+    private void setItemsOnRequest(List<ItemRequest> requests) {
         List<Item> items = itemRepository.findByItemRequestIdIn(requests.stream()
                 .map(ItemRequest::getId)
                 .collect(Collectors.toList()));
         if (!items.isEmpty()) {
             requests.forEach(r -> r.setItemsOnRequest(items.stream()
+                    .filter(i -> i.getItemRequestId() != null)
                     .filter(i -> i.getItemRequestId() == r.getId())
                     .collect(Collectors.toList())));
         }
-        return requests;
     }
 }

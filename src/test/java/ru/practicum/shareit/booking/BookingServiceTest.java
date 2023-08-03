@@ -95,6 +95,8 @@ public class BookingServiceTest {
     void shouldThrowUserNotFoundException() {
         when(userRepository.findById(anyLong()))
                 .thenReturn(Optional.empty());
+        when(userRepository.existsById(anyLong()))
+                .thenReturn(false);
 
         assertThrows(NotFoundException.class, () ->
                 bookingService.add(booking, 1L, 1L));
@@ -106,7 +108,8 @@ public class BookingServiceTest {
                 bookingService.getByStateAndUserId(any(), 1L, 1, 1));
         assertThrows(NotFoundException.class, () ->
                 bookingService.getAllByStateAndUserId(any(), 1L, 1, 1));
-        verify(userRepository, times(5)).findById(anyLong());
+        verify(userRepository, times(3)).findById(anyLong());
+        verify(userRepository, times(2)).existsById(anyLong());
     }
 
     @Test
@@ -243,8 +246,8 @@ public class BookingServiceTest {
     @Test
     void shouldReturnBookingsByBookerId() {
         List<Booking> bookings = List.of(booking);
-        when(userRepository.findById(anyLong()))
-                .thenReturn(Optional.of(user));
+        when(userRepository.existsById(anyLong()))
+                .thenReturn(true);
         when(bookingRepository.findByBookerId(anyLong(), any()))
                 .thenReturn(bookings);
         when(bookingRepository.findByBookerIdAndStartBeforeAndEndAfter(anyLong(), any(), any(), any()))
@@ -273,8 +276,8 @@ public class BookingServiceTest {
     @Test
     void shouldReturnAllBookingsByItemOwnerId() {
         List<Booking> bookings = List.of(booking);
-        when(userRepository.findById(anyLong()))
-                .thenReturn(Optional.of(user));
+        when(userRepository.existsById(anyLong()))
+                .thenReturn(true);
         when(bookingRepository.findByItem_OwnerId(anyLong(), any()))
                 .thenReturn(bookings);
         when(bookingRepository.findByItem_OwnerIdAndStartBeforeAndEndAfter(anyLong(), any(), any(), any()))

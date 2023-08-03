@@ -60,6 +60,8 @@ public class ItemRequestServiceTest {
     void shouldThrowUserNotFoundException() {
         when(userRepository.findById(anyLong()))
                 .thenReturn(Optional.empty());
+        when(userRepository.existsById(anyLong()))
+                .thenReturn(false);
 
         assertThrows(NotFoundException.class, () ->
                 requestService.add(request, 1L));
@@ -69,19 +71,20 @@ public class ItemRequestServiceTest {
                 requestService.getByUserId(1L));
         assertThrows(NotFoundException.class, () ->
                 requestService.getAll(1L, 0, 5));
-        verify(userRepository, times(4)).findById(anyLong());
+        verify(userRepository, times(1)).findById(anyLong());
+        verify(userRepository, times(3)).existsById(anyLong());
     }
 
     @Test
     void shouldThrowRequestNotFoundException() {
-        when(userRepository.findById(anyLong()))
-                .thenReturn(Optional.of(user));
+        when(userRepository.existsById(anyLong()))
+                .thenReturn(true);
         when(requestRepository.findById(anyLong()))
                 .thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () ->
                 requestService.getById(1L, 1L));
-        verify(userRepository, times(1)).findById(anyLong());
+        verify(userRepository, times(1)).existsById(anyLong());
         verify(requestRepository, times(1)).findById(anyLong());
     }
 
@@ -99,45 +102,45 @@ public class ItemRequestServiceTest {
 
     @Test
     void shouldReturnRequestById() {
-        when(userRepository.findById(anyLong()))
-                .thenReturn(Optional.of(user));
+        when(userRepository.existsById(anyLong()))
+                .thenReturn(true);
         when(requestRepository.findById(anyLong()))
                 .thenReturn(Optional.of(request));
         when(itemRepository.findByItemRequestId(anyLong()))
                 .thenReturn(emptyList());
 
         assertThat(request, equalTo(requestService.getById(1L, 1L)));
-        verify(userRepository, times(1)).findById(anyLong());
+        verify(userRepository, times(1)).existsById(anyLong());
         verify(requestRepository, times(1)).findById(anyLong());
         verify(itemRepository, times(1)).findByItemRequestId(anyLong());
     }
 
     @Test
     void shouldReturnRequestsByUserId() {
-        when(userRepository.findById(anyLong()))
-                .thenReturn(Optional.of(user));
+        when(userRepository.existsById(anyLong()))
+                .thenReturn(true);
         when(requestRepository.findByRequesterId(anyLong()))
                 .thenReturn(List.of(request));
         when(itemRepository.findByItemRequestIdIn(anyList()))
                 .thenReturn(emptyList());
 
         assertThat(List.of(request), equalTo(requestService.getByUserId(1L)));
-        verify(userRepository, times(1)).findById(anyLong());
+        verify(userRepository, times(1)).existsById(anyLong());
         verify(requestRepository, times(1)).findByRequesterId(anyLong());
         verify(itemRepository, times(1)).findByItemRequestIdIn(anyList());
     }
 
     @Test
     void shouldReturnRequestsOtherUsers() {
-        when(userRepository.findById(anyLong()))
-                .thenReturn(Optional.of(user));
+        when(userRepository.existsById(anyLong()))
+                .thenReturn(true);
         when(requestRepository.findByRequesterIdNot(anyLong(), any()))
                 .thenReturn(List.of(request));
         when(itemRepository.findByItemRequestIdIn(anyList()))
                 .thenReturn(emptyList());
 
         assertThat(List.of(request), equalTo(requestService.getAll(1L, 0, 5)));
-        verify(userRepository, times(1)).findById(anyLong());
+        verify(userRepository, times(1)).existsById(anyLong());
         verify(requestRepository, times(1)).findByRequesterIdNot(anyLong(), any());
         verify(itemRepository, times(1)).findByItemRequestIdIn(anyList());
     }
