@@ -1,5 +1,7 @@
 package ru.practicum.shareit.booking.service;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.Booking;
@@ -35,6 +37,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public Booking add(Booking booking, long itemId, long userId) {
         User booker = userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
@@ -57,7 +60,6 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Booking getByBookingIdAndUserId(long bookingId, long userId) {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
@@ -70,6 +72,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public Booking bookingDecision(long bookingId, long userId, boolean isApproved) {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
@@ -86,86 +89,88 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<Booking> getByStateAndUserId(State state, long bookerId) {
-        userRepository.findById(bookerId).orElseThrow(() ->
-                new NotFoundException(String.format("Пользователь с id %d не найден", bookerId)));
+    public List<Booking> getByStateAndUserId(State state, long bookerId, int from, int size) {
+        if (!userRepository.existsById(bookerId)) {
+            throw new NotFoundException(String.format("Пользователь с id %d не найден", bookerId));
+        }
         LocalDateTime current = LocalDateTime.now();
+        Pageable page = PageRequest.of(from / size, size, SORT_BY_START_DATE_DESC);
         switch (state) {
             case ALL:
                 return bookingRepository.findByBookerId(
                         bookerId,
-                        SORT_BY_START_DATE_DESC);
+                        page);
             case CURRENT:
                 return bookingRepository.findByBookerIdAndStartBeforeAndEndAfter(
                         bookerId,
                         current,
                         current,
-                        SORT_BY_START_DATE_DESC);
+                        page);
             case PAST:
                 return bookingRepository.findByBookerIdAndEndBefore(
                         bookerId,
                         current,
-                        SORT_BY_START_DATE_DESC);
+                        page);
             case FUTURE:
                 return bookingRepository.findByBookerIdAndStartAfter(
                         bookerId,
                         current,
-                        SORT_BY_START_DATE_DESC);
+                        page);
             case WAITING:
                 return bookingRepository.findByBookerIdAndStatus(
                         bookerId,
                         Status.WAITING,
-                        SORT_BY_START_DATE_DESC);
+                        page);
             case REJECTED:
                 return bookingRepository.findByBookerIdAndStatus(
                         bookerId,
                         Status.REJECTED,
-                        SORT_BY_START_DATE_DESC);
+                        page);
             default:
                 return Collections.emptyList();
         }
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<Booking> getAllByStateAndUserId(State state, long ownerId) {
-        userRepository.findById(ownerId).orElseThrow(() ->
-                new NotFoundException(String.format("Пользователь с id %d не найден", ownerId)));
+    public List<Booking> getAllByStateAndUserId(State state, long ownerId, int from, int size) {
+        if (!userRepository.existsById(ownerId)) {
+            throw new NotFoundException(String.format("Пользователь с id %d не найден", ownerId));
+        }
         LocalDateTime current = LocalDateTime.now();
+        Pageable page = PageRequest.of(from / size, size, SORT_BY_START_DATE_DESC);
         switch (state) {
             case ALL:
                 return bookingRepository.findByItem_OwnerId(
                         ownerId,
-                        SORT_BY_START_DATE_DESC);
+                        page);
             case CURRENT:
                 return bookingRepository.findByItem_OwnerIdAndStartBeforeAndEndAfter(
                         ownerId,
                         current,
                         current,
-                        SORT_BY_START_DATE_DESC);
+                        page);
             case PAST:
                 return bookingRepository.findByItem_OwnerIdAndStartBeforeAndStatusNot(
                         ownerId,
                         current,
                         Status.REJECTED,
-                        SORT_BY_START_DATE_DESC);
+                        page);
             case FUTURE:
                 return bookingRepository.findByItem_OwnerIdAndStartAfterAndStatusNot(
                         ownerId,
                         current,
                         Status.REJECTED,
-                        SORT_BY_START_DATE_DESC);
+                        page);
             case WAITING:
                 return bookingRepository.findByItem_OwnerIdAndStatus(
                         ownerId,
                         Status.WAITING,
-                        SORT_BY_START_DATE_DESC);
+                        page);
             case REJECTED:
                 return bookingRepository.findByItem_OwnerIdAndStatus(
                         ownerId,
                         Status.REJECTED,
-                        SORT_BY_START_DATE_DESC);
+                        page);
             default:
                 return Collections.emptyList();
         }

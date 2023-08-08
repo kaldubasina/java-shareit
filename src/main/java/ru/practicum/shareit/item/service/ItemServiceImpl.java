@@ -1,5 +1,7 @@
 package ru.practicum.shareit.item.service;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.Booking;
@@ -8,17 +10,20 @@ import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.NotAvailableException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.model.Comment;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.repository.UserRepository;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
-import static ru.practicum.shareit.util.Constants.*;
+import static ru.practicum.shareit.util.Constants.SORT_BY_START_DATE_ASC;
+import static ru.practicum.shareit.util.Constants.SORT_BY_START_DATE_DESC;
 
 @Service
 public class ItemServiceImpl implements ItemService {
@@ -27,26 +32,37 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository requestRepository;
 
     public ItemServiceImpl(ItemRepository itemRepository,
                            UserRepository userRepository,
                            BookingRepository bookingRepository,
-                           CommentRepository commentRepository) {
+                           CommentRepository commentRepository,
+                           ItemRequestRepository requestRepository) {
         this.itemRepository = itemRepository;
         this.userRepository = userRepository;
         this.bookingRepository = bookingRepository;
         this.commentRepository = commentRepository;
+        this.requestRepository = requestRepository;
     }
 
     @Override
-    public Item add(Item item, long userId) {
+    @Transactional
+    public Item add(Item item, long userId, Long requestId) {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
         item.setOwner(user);
+        if (requestId != null) {
+            if (!requestRepository.existsById(requestId)) {
+                   throw new NotFoundException(String.format("Запрос с id %d не найден", requestId));
+            }
+            item.setItemRequestId(requestId);
+        }
         return itemRepository.save(item);
     }
 
     @Override
+    @Transactional
     public Item update(Item item, long itemId, long userId) {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
@@ -68,7 +84,6 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Item getByItemId(long itemId, long userId) {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
@@ -79,31 +94,30 @@ public class ItemServiceImpl implements ItemService {
             List<Booking> lastBookings = bookingRepository.findByItem_OwnerIdAndStartBeforeAndStatusNot(userId,
                     LocalDateTime.now(),
                     Status.REJECTED,
-                    SORT_BY_START_DATE_DESC);
+                    PageRequest.of(0, 1, SORT_BY_START_DATE_DESC));
             List<Booking> nextBookings = bookingRepository.findByItem_OwnerIdAndStartAfterAndStatusNot(userId,
                     LocalDateTime.now(),
                     Status.REJECTED,
-                    SORT_BY_START_DATE_ASC);
+                    PageRequest.of(0, 1, SORT_BY_START_DATE_ASC));
             setLastAndNextBookings(lastBookings, nextBookings, item);
         }
         return item;
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<Item> getByUserId(long userId) {
-        List<Item> items = itemRepository.findByOwnerId(userId);
+    public List<Item> getByUserId(long userId, int from, int size) {
+        List<Item> items = itemRepository.findByOwnerId(userId, PageRequest.of(from / size, size));
         List<Comment> comments = commentRepository.findByItemIdIn(items.stream()
                 .map(Item::getId)
                 .collect(Collectors.toList()));
         List<Booking> lastBookings = bookingRepository.findByItem_OwnerIdAndStartBeforeAndStatusNot(userId,
                 LocalDateTime.now(),
                 Status.REJECTED,
-                SORT_BY_START_DATE_DESC);
+                PageRequest.of(0, 1, SORT_BY_START_DATE_DESC));
         List<Booking> nextBookings = bookingRepository.findByItem_OwnerIdAndStartAfterAndStatusNot(userId,
                 LocalDateTime.now(),
                 Status.REJECTED,
-                SORT_BY_START_DATE_ASC);
+                PageRequest.of(0, 1, SORT_BY_START_DATE_ASC));
         items.forEach(item -> item.setComments(comments.stream()
                 .filter(c -> c.getItem().getId() == item.getId())
                 .collect(Collectors.toList())));
@@ -125,15 +139,16 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<Item> searchByText(String text) {
+    public List<Item> searchByText(String text, int from, int size) {
+        Pageable page = PageRequest.of(from / size, size);
         if (!text.isBlank()) {
-            return itemRepository.findByAvailableTrueAndDescriptionContainingOrAvailableTrueAndNameContainingAllIgnoreCase(text, text);
+            return itemRepository.findByAvailableTrueAndDescriptionContainingOrAvailableTrueAndNameContainingAllIgnoreCase(text, text, page);
         }
         return Collections.emptyList();
     }
 
     @Override
+    @Transactional
     public Comment addComment(Comment comment, long itemId, long userId) {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id %d не найден", userId)));

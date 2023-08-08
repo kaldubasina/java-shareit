@@ -10,9 +10,11 @@ import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.validators.EntityValidator;
+import ru.practicum.shareit.validators.EntityValidator.OnCreate;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -26,9 +28,11 @@ public class ItemController {
     private final ItemService itemService;
 
     @PostMapping
-    public ItemDto addNew(@Validated(EntityValidator.OnCreate.class) @RequestBody ItemDto itemDto,
-                          @RequestHeader(REQUEST_HEADER_USER_ID) long userId) {
-        Item item = itemService.add(ItemMapper.dtoToItem(itemDto), userId);
+    public ItemDto add(@Validated(OnCreate.class) @RequestBody ItemDto itemDto,
+                       @RequestHeader(REQUEST_HEADER_USER_ID) long userId) {
+        Item item = itemService.add(ItemMapper.dtoToItem(itemDto),
+                userId,
+                itemDto.getRequestId());
         return ItemMapper.toItemDto(item);
     }
 
@@ -47,16 +51,20 @@ public class ItemController {
     }
 
     @GetMapping
-    public Collection<ItemDto> getByUser(@RequestHeader(REQUEST_HEADER_USER_ID) long userId) {
-        return itemService.getByUserId(userId)
+    public Collection<ItemDto> getByUser(@RequestParam(value = "from", defaultValue = "0") @PositiveOrZero int from,
+                                         @RequestParam(value = "size", defaultValue = "5") @Positive int size,
+                                         @RequestHeader(REQUEST_HEADER_USER_ID) long userId) {
+        return itemService.getByUserId(userId, from, size)
                 .stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
 
     @GetMapping("/search")
-    public Collection<ItemDto> searchByText(@RequestParam("text") String text) {
-        return itemService.searchByText(text)
+    public Collection<ItemDto> searchByText(@RequestParam(value = "from", defaultValue = "0") @PositiveOrZero int from,
+                                            @RequestParam(value = "size", defaultValue = "5") @Positive int size,
+                                            @RequestParam("text") String text) {
+        return itemService.searchByText(text, from, size)
                 .stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());

@@ -19,7 +19,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public UserDto addNew(@Validated(EntityValidator.OnCreate.class) @RequestBody UserDto userDto) {
+    public UserDto add(@Validated(EntityValidator.OnCreate.class) @RequestBody UserDto userDto) {
         return UserMapper.toUserDto(userService.add(UserMapper.dtoToUser(userDto)));
     }
 

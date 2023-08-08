@@ -20,6 +20,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public User add(User user) {
         try {
             return userRepository.save(user);
@@ -30,6 +31,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public User update(User user, long userId) {
         User userForUpdate = userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
@@ -46,19 +48,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public User getById(long userId) {
         return userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
     }
 
     @Override
+    @Transactional
     public void delete(long userId) {
         userRepository.deleteById(userId);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<User> getAll() {
         return userRepository.findAll();
     }
