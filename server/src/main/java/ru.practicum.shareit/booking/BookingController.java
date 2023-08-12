@@ -1,7 +1,6 @@
 package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.RequestBookingDto;
 import ru.practicum.shareit.booking.dto.ResponseBookingDto;
@@ -9,11 +8,7 @@ import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.State;
 import ru.practicum.shareit.booking.service.BookingService;
-import ru.practicum.shareit.validators.AvailableEnumValue;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -22,13 +17,12 @@ import static ru.practicum.shareit.util.Constants.REQUEST_HEADER_USER_ID;
 @RestController
 @RequestMapping(path = "/bookings")
 @RequiredArgsConstructor
-@Validated
 public class BookingController {
 
     private final BookingService bookingService;
 
     @PostMapping
-    public ResponseBookingDto add(@Valid @RequestBody RequestBookingDto bookingDto,
+    public ResponseBookingDto add(@RequestBody RequestBookingDto bookingDto,
                                   @RequestHeader(REQUEST_HEADER_USER_ID) long userId) {
         Booking booking = bookingService.add(
                 BookingMapper.requestBookingDtoToBooking(bookingDto),
@@ -54,10 +48,9 @@ public class BookingController {
 
     @GetMapping
     public Collection<ResponseBookingDto> getByStateAndUserId(
-            @RequestParam(value = "state", defaultValue = "ALL")
-            @AvailableEnumValue(enumClass = State.class) String state,
-            @RequestParam(value = "from", defaultValue = "0") @PositiveOrZero int from,
-            @RequestParam(value = "size", defaultValue = "5") @Positive int size,
+            @RequestParam(value = "state", defaultValue = "ALL") String state,
+            @RequestParam(value = "from", defaultValue = "0") int from,
+            @RequestParam(value = "size", defaultValue = "5") int size,
             @RequestHeader(REQUEST_HEADER_USER_ID) long userId) {
         return bookingService.getByStateAndUserId(State.valueOf(state), userId, from, size)
                 .stream()
@@ -67,10 +60,9 @@ public class BookingController {
 
     @GetMapping("/owner")
     public Collection<ResponseBookingDto> getAllByStateAndUserId(
-            @RequestParam(value = "state", defaultValue = "ALL")
-            @AvailableEnumValue(enumClass = State.class) String state,
-            @RequestParam(value = "from", defaultValue = "0") @PositiveOrZero int from,
-            @RequestParam(value = "size", defaultValue = "5") @Positive int size,
+            @RequestParam(value = "state", defaultValue = "ALL") String state,
+            @RequestParam(value = "from", defaultValue = "0") int from,
+            @RequestParam(value = "size", defaultValue = "5") int size,
             @RequestHeader(REQUEST_HEADER_USER_ID) long userId) {
         return bookingService.getAllByStateAndUserId(State.valueOf(state), userId, from, size)
                 .stream()

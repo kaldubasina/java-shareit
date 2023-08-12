@@ -9,10 +9,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.shareit.exception.model.ErrorResponse;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
@@ -56,16 +53,5 @@ public class ErrorHandler {
     public ErrorResponse handleNotAvailableException(final RuntimeException ex) {
         log.debug("Отказано в доступе 400 {}", ex.getMessage(), ex);
         return new ErrorResponse(ex.getMessage());
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(ConstraintViolationException.class)
-    protected ErrorResponse handleConstraintViolation(ConstraintViolationException ex) {
-        List<String> errors = ex.getConstraintViolations()
-                .stream()
-                .map(ConstraintViolation::getMessage)
-                .collect(Collectors.toList());
-        log.debug("Получен статус 400 {}", ex.getMessage(), ex);
-        return new ErrorResponse(String.join(", ", errors));
     }
 }
